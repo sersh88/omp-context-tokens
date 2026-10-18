@@ -1,0 +1,32 @@
+{
+	"name": "omp-context-tokens",
+	"version": "0.1.0",
+	"description": "Show used/window context tokens in the omp status line instead of a bare percentage",
+	"license": "MIT",
+	"author": "sersh88",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sersh88/omp-context-tokens.git"
+	},
+	"keywords": [
+		"omp-plugin",
+		"oh-my-pi",
+		"omp",
+		"status-line",
+		"context"
+	],
+	"type": "module",
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"test": "bun test"
+	},
+	"omp": {
+		"name": "omp-context-tokens",
+		"description": "Renders the status-line context segment as used/window tokens (124K/200K).",
+		"extensions": [
+			"./src/index.js"
+		]
+	}
+}
