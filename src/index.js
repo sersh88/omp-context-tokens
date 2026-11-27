@@ -1,12 +1,11 @@
 /**
  * Show used/window context tokens in the omp status line.
  *
- * omp renders the context segment as `62.0%/200K`; the absolute number is the
- * signal you actually act on when deciding to compact or hand off. This
- * extension replaces the label with `124K/200K`, keeping the segment icon, the
- * auto-compaction icon and the warning/error coloring.
+ * When omp exposes the legacy context segment, replace `62.0%/200K` with
+ * `124K/200K`, keeping the icons and warning/error coloring. Otherwise show
+ * the token counts in an extension status entry alongside the stock display.
  *
- * Set `OMP_CONTEXT_TOKENS=off` to leave the stock rendering untouched.
+ * Set `OMP_CONTEXT_TOKENS=off` to disable both paths.
  */
 import { contextLevel, formatContextTokens } from "./format.js";
 
@@ -37,7 +36,28 @@ export default function ompContextTokens(pi) {
 
 	const segment = pi.pi?.SEGMENTS?.context_pct;
 	if (!segment || typeof segment.render !== "function") {
-		pi.logger?.warn?.("omp-context-tokens: context_pct segment not found; nothing patched");
+		if (typeof pi.on !== "function") {
+			pi.logger?.warn?.("omp-context-tokens: neither the legacy context segment nor extension events are available");
+			return;
+		}
+		const refresh = (_event, ctx) => {
+			if (!ctx.hasUI) return;
+			const usage = ctx.getContextUsage();
+			ctx.ui.setStatus("omp-context-tokens", usage ? formatContextTokens(usage) : undefined);
+		};
+		for (const event of [
+			"session_start",
+			"session_switch",
+			"session_clear",
+			"session_branch",
+			"session_compact",
+			"session_tree",
+			"before_agent_start",
+			"turn_end",
+			"agent_end",
+		]) {
+			pi.on(event, refresh);
+		}
 		return;
 	}
 	if (segment[PATCHED]) return;
